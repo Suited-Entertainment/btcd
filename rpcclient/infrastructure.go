@@ -7,7 +7,6 @@ package rpcclient
 import (
 	"bytes"
 	"container/list"
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
@@ -1349,22 +1348,10 @@ func newHTTPClient(config *ConnConfig) (*http.Client, error) {
 		}
 	}
 
-	parsedDialAddr, err := ParseAddressString(config.Host)
-	if err != nil {
-		return nil, err
-	}
 	client := http.Client{
 		Transport: &http.Transport{
 			Proxy:           proxyFunc,
 			TLSClientConfig: tlsConfig,
-			DialContext: func(_ context.Context, _,
-				_ string) (net.Conn, error) {
-
-				return net.Dial(
-					parsedDialAddr.Network(),
-					parsedDialAddr.String(),
-				)
-			},
 		},
 		Timeout: defaultHTTPTimeout,
 	}
@@ -1392,7 +1379,7 @@ func (config *ConnConfig) httpURL() (string, error) {
 		// The Unix domain socket is specified in the DialContext.
 		httpURL = protocol + "://unix"
 	default:
-		httpURL = protocol + "://" + config.Host
+		httpURL = protocol + "://" + config.Host + "/" + config.Endpoint
 	}
 
 	return httpURL, nil

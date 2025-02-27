@@ -52,3 +52,7 @@ btcutil/psbt/coverage.txt
 /btcd
 /findcheckpoint
 /gencerts
+
+# Jetbrains IDE files
+.idea
+.idea/*
