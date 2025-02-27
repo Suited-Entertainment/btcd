@@ -871,8 +871,13 @@ func (c *Client) handleSendPostMessage(jReq *jsonRequest) {
 		// When the response itself isn't a valid JSON-RPC response
 		// return an error which includes the HTTP status code and raw
 		// response bytes.
-		err = fmt.Errorf("status code: %d, response: %q",
-			httpResponse.StatusCode, string(respBytes))
+		if c.config.EnableHTTPPostIgnore403 && httpResponse.StatusCode == 403 {
+			err = btcjson.ErrRPCMethodNotFound
+		} else {
+			err = fmt.Errorf("status code: %d, response: %q",
+				httpResponse.StatusCode, string(respBytes))
+		}
+
 		jReq.responseChan <- &Response{err: err}
 		return
 	}
@@ -1284,6 +1289,10 @@ type ConnConfig struct {
 	// EnableBCInfoHacks is an option provided to enable compatibility hacks
 	// when connecting to blockchain.info RPC server
 	EnableBCInfoHacks bool
+
+	// EnableHTTPPostIgnore403 options will ignore invalid response format
+	// on 403, and return a btcjson.ErrRPCMethodNotFound error instead
+	EnableHTTPPostIgnore403 bool
 }
 
 // getAuth returns the username and passphrase that will actually be used for
